@@ -1,0 +1,85 @@
+# 文書用の草案。runner/validator は未実装。
+# null の必須項目を確認し、成功基準を固定するまで実行しない。
+schema_version: "0-draft"
+id: exp_001_scone_reproducibility
+status: draft
+stage: M1_SCONE_execution
+kind: integration
+
+hypothesis:
+  id: H1_prerequisite
+  statement: >-
+    同じ scenario、engine、version、seed の SCONE 反復実行から、
+    等価な標準軌跡を抽出できる。H1 の共有仮説を直接検証しない。
+
+inputs:
+  scenario: null
+  scenario_sha256: null
+  simulation_engine: null
+  scone_version: null
+  model_dependencies: null
+
+baseline:
+  id: first_execution_for_each_seed
+  description: 各 seed の初回実行を、同じ seed の反復実行の比較対象とする。
+
+change:
+  primary: execution_repetition
+  executions_per_seed: 2
+  held_fixed:
+    - scenario_and_model_inputs
+    - simulation_engine
+    - scone_version
+    - seed
+    - simulation_duration
+    - output_sampling
+
+evaluation:
+  task: known_walking_scenario
+  simulation_duration_s: null
+  output_sampling_s: null
+  comparison_columns: null
+  time_alignment: null
+  absolute_tolerance: null
+  relative_tolerance: null
+  schema_version: null
+
+seeds: [0, 1, 2, 3, 4]
+
+metrics:
+  - id: trajectory_equivalence
+    computation: null
+  - id: schema_validation
+    computation: null
+  - id: process_exit_code
+    computation: null
+
+success:
+  # equivalence の具体的計算法と許容差は ready にする前に固定する。
+  aggregation: all_seeds
+  conditions:
+    - metric: trajectory_equivalence
+      operator: equals
+      value: true
+    - metric: schema_validation
+      operator: equals
+      value: true
+    - metric: process_exit_code
+      operator: equals
+      value: 0
+
+artifacts:
+  run_root: experiments/runs
+  overwrite: false
+  required:
+    - config.yaml
+    - experiment.yaml
+    - git_commit.txt
+    - environment.txt
+    - metadata.json
+    - trajectory.parquet
+    - metrics.json
+    - stdout.log
+    - stderr.log
+    - summary.md
+    - plots/
